@@ -1,53 +1,45 @@
-import React from "react";
-import useWeather from "../../hooks/useWeather";
+import { useSelector } from "react-redux";
 
 const HumidityGauge = () => {
-  const { weather, loading } = useWeather();
+  const weather = useSelector((state) => state.weather);
 
-  const humidity = weather?.current?.humidity || 0;
+  const humidity =
+    weather.data?.current?.relative_humidity_2m ?? 0;
 
   return (
     <div className="dashboard-card humidity-card">
-      <div className="card-header">
+      <div className="dashboard-card-header">
         <div>
           <h5>Humidity</h5>
-          <p>Current moisture level</p>
+          <p>Current air humidity</p>
         </div>
 
-        <i className="bi bi-droplet-half card-header-icon"></i>
+        <span className="dashboard-card-icon">
+          <i className="bi bi-droplet"></i>
+        </span>
       </div>
 
-      {loading ? (
-        <div className="text-center py-5">
-          <div className="spinner-border spinner-border-sm"></div>
-        </div>
-      ) : (
-        <div className="humidity-content">
-          <div
-            className="humidity-circle"
-            style={{
-              "--humidity": `${humidity * 3.6}deg`,
-            }}
-          >
-            <div className="humidity-inner">
-              <strong>{humidity}%</strong>
-              <span>Humidity</span>
-            </div>
-          </div>
-
-          <div className="humidity-info">
-            <p>
-              <i className="bi bi-check-circle"></i>
-              Suitable for crop monitoring
-            </p>
-
-            <small>
-              Updated from live Lahore weather
-              data.
-            </small>
+      <div className="humidity-gauge-wrapper">
+        <div
+          className="humidity-gauge"
+          style={{
+            "--humidity": `${humidity * 3.6}deg`,
+          }}
+        >
+          <div className="humidity-gauge-inner">
+            <strong>{humidity}%</strong>
+            <span>Humidity</span>
           </div>
         </div>
-      )}
+      </div>
+
+      <div className="humidity-status">
+        {humidity >= 70
+          ? "High humidity"
+          : humidity >= 40
+          ? "Comfortable level"
+          : "Low humidity"}
+      </div>
     </div>
   );
 };

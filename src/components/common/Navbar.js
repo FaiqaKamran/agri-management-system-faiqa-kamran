@@ -1,74 +1,66 @@
-import React, { useState } from "react";
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
+import { logout } from "../../store/reducers/authReducer";
 
 const Navbar = () => {
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("agri_dark_mode") === "true"
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { user, role } = useSelector(
+    (state) => state.auth
   );
 
-  const toggleDarkMode = () => {
-    const newValue = !darkMode;
-
-    setDarkMode(newValue);
-    localStorage.setItem(
-      "agri_dark_mode",
-      newValue
-    );
-
-    document.body.classList.toggle(
-      "dark-mode",
-      newValue
-    );
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
   };
 
-  const today = new Date().toLocaleDateString(
-    "en-PK",
-    {
-      weekday: "long",
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    }
-  );
-
   return (
-    <header className="topbar">
-      <div>
-        <h6>Welcome back </h6>
-        <span>{today}</span>
+    <header className="top-navbar">
+      <div className="navbar-left">
+        <div>
+          <h5>Farm Management</h5>
+          <small>Agriculture Management System</small>
+        </div>
       </div>
 
-      <div className="topbar-actions">
-        <button className="icon-btn">
-          <i className="bi bi-bell"></i>
-          <span className="notification-dot">
-            3
-          </span>
-        </button>
-
+      <div className="navbar-right">
         <button
-          className="icon-btn"
-          onClick={toggleDarkMode}
-          title="Toggle dark mode"
+          type="button"
+          className="navbar-icon-btn"
+          title="Notifications"
         >
-          <i
-            className={`bi ${
-              darkMode
-                ? "bi-sun"
-                : "bi-moon-stars"
-            }`}
-          ></i>
+          <i className="bi bi-bell"></i>
         </button>
 
-        <div className="profile">
-          <div className="profile-avatar">
-            FM
+        <div className="navbar-user">
+          <div className="navbar-user-avatar">
+            {user?.name
+              ? user.name.charAt(0).toUpperCase()
+              : "U"}
           </div>
 
-          <div>
-            <strong>Farm Manager</strong>
-            <small>Administrator</small>
+          <div className="navbar-user-info">
+            <strong>{user?.name || "User"}</strong>
+
+            <small>
+              {role === "Admin"
+                ? "Administrator"
+                : "Farm Manager"}
+            </small>
           </div>
         </div>
+
+        <button
+          type="button"
+          className="btn btn-outline-danger btn-sm navbar-logout"
+          onClick={handleLogout}
+        >
+          <i className="bi bi-box-arrow-right"></i>
+          Logout
+        </button>
       </div>
     </header>
   );

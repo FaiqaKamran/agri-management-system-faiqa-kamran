@@ -1,8 +1,14 @@
-import { useContext } from "react";
+import React, {
+  useEffect,
+} from "react";
 
-import AppContext from "../context/AppContext";
+import {
+  useDispatch,
+  useSelector,
+} from "react-redux";
 
 import StatCard from "../components/common/StatCard";
+
 import WeatherCard from "../components/dashboard/WeatherCard";
 import HumidityGauge from "../components/dashboard/HumidityGauge";
 import ForecastStrip from "../components/dashboard/ForecastStrip";
@@ -11,38 +17,62 @@ import CropHealthChart from "../components/dashboard/CropHealthChart";
 import CuttingSchedule from "../components/dashboard/CuttingSchedule";
 import AlertsPanel from "../components/dashboard/AlertsPanel";
 
+import {
+  fetchWeather,
+} from "../store/thunks/fetchWeather";
+
+import {
+  selectDashboardStats,
+} from "../store/selectors/dashboardSelectors";
+
 const Dashboard = () => {
-  const { crops, orders, buyers } =
-    useContext(AppContext);
+  const dispatch = useDispatch();
 
-  const totalHarvest = crops.reduce(
-    (sum, crop) =>
-      sum + Number(crop.harvestQty || 0),
-    0
+  const stats = useSelector(
+    selectDashboardStats
   );
 
-  const totalSold = crops.reduce(
-    (sum, crop) =>
-      sum + Number(crop.soldQty || 0),
-    0
-  );
+  const {
+    totalHarvest,
+    totalSold,
+    totalRevenue,
+    totalExpenses,
+    profitLoss,
+    pendingTasks,
+    inProgressTasks,
+    lowStockItems,
+    totalOrders,
+    totalCrops,
+  } = stats;
 
-  const remainingStock =
-    totalHarvest - totalSold;
+  useEffect(() => {
+    dispatch(fetchWeather());
+
+    const interval = setInterval(() => {
+      dispatch(fetchWeather());
+    }, 30 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [dispatch]);
 
   return (
-    <div>
+    <div className="dashboard-page">
+
       <div className="page-heading">
         <div>
           <h1>Dashboard</h1>
+
           <p>
             Monitor your farm performance,
-            crops and sales.
+            crops and daily operations.
           </p>
         </div>
       </div>
 
+      {/* MAIN STATS */}
+
       <div className="row g-4 mb-4">
+
         <div className="col-xl-3 col-md-6">
           <StatCard
             title="Total Harvest"
@@ -54,8 +84,8 @@ const Dashboard = () => {
 
         <div className="col-xl-3 col-md-6">
           <StatCard
-            title="Orders Received"
-            value={orders.length}
+            title="Orders"
+            value={totalOrders}
             icon="bi-receipt"
             trend="Total orders"
           />
@@ -73,14 +103,66 @@ const Dashboard = () => {
         <div className="col-xl-3 col-md-6">
           <StatCard
             title="Remaining Stock"
-            value={`${remainingStock.toLocaleString()} kg`}
+            value={`${(
+              totalHarvest - totalSold
+            ).toLocaleString()} kg`}
             icon="bi-box-seam"
-            trend={`${buyers.length} buyers`}
+            trend={`${totalCrops} crops`}
           />
         </div>
+
       </div>
 
+      {/* FINANCIAL STATS */}
+
       <div className="row g-4 mb-4">
+
+        <div className="col-xl-3 col-md-6">
+          <StatCard
+            title="Revenue"
+            value={`Rs. ${totalRevenue.toLocaleString()}`}
+            icon="bi-cash-stack"
+            trend="Sales revenue"
+          />
+        </div>
+
+        <div className="col-xl-3 col-md-6">
+          <StatCard
+            title="Expenses"
+            value={`Rs. ${totalExpenses.toLocaleString()}`}
+            icon="bi-wallet2"
+            trend="Farm expenses"
+          />
+        </div>
+
+        <div className="col-xl-3 col-md-6">
+          <StatCard
+            title="Profit / Loss"
+            value={`Rs. ${profitLoss.toLocaleString()}`}
+            icon="bi-graph-up-arrow"
+            trend={
+              profitLoss >= 0
+                ? "Positive balance"
+                : "Loss recorded"
+            }
+          />
+        </div>
+
+        <div className="col-xl-3 col-md-6">
+          <StatCard
+            title="Low Stock"
+            value={lowStockItems}
+            icon="bi-exclamation-triangle"
+            trend="Inventory alerts"
+          />
+        </div>
+
+      </div>
+
+      {/* WEATHER */}
+
+      <div className="row g-4 mb-4">
+
         <div className="col-xl-8">
           <WeatherCard />
         </div>
@@ -88,13 +170,17 @@ const Dashboard = () => {
         <div className="col-xl-4">
           <HumidityGauge />
         </div>
+
       </div>
 
       <div className="mb-4">
         <ForecastStrip />
       </div>
 
+      {/* CROP HEALTH */}
+
       <div className="row g-4 mb-4">
+
         <div className="col-xl-5">
           <CropHealthList />
         </div>
@@ -102,17 +188,108 @@ const Dashboard = () => {
         <div className="col-xl-7">
           <CropHealthChart />
         </div>
+
       </div>
 
+      {/* FARM OPERATIONS */}
+
       <div className="row g-4">
+
+        <div className="col-xl-5">
+
+          <div className="dashboard-info-card">
+
+            <div className="dashboard-info-header">
+              <div>
+                <h5>Farm Tasks</h5>
+
+                <small>
+                  Current operational tasks
+                </small>
+              </div>
+
+              <i className="bi bi-check2-square"></i>
+            </div>
+
+            <div className="dashboard-mini-stats">
+
+              <div>
+                <strong>
+                  {pendingTasks}
+                </strong>
+
+                <span>Pending</span>
+              </div>
+
+              <div>
+                <strong>
+                  {inProgressTasks}
+                </strong>
+
+                <span>In Progress</span>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
         <div className="col-xl-7">
           <CuttingSchedule />
         </div>
 
-        <div className="col-xl-5">
+      </div>
+
+      <div className="row g-4 mt-1">
+
+        <div className="col-xl-7">
           <AlertsPanel />
         </div>
+
+        <div className="col-xl-5">
+
+          <div className="dashboard-info-card">
+
+            <div className="dashboard-info-header">
+
+              <div>
+                <h5>Inventory Status</h5>
+
+                <small>
+                  Current stock monitoring
+                </small>
+              </div>
+
+              <i className="bi bi-box-seam"></i>
+
+            </div>
+
+            <div className="inventory-dashboard-status">
+
+              <div className="inventory-status-icon">
+                <i className="bi bi-exclamation-circle"></i>
+              </div>
+
+              <div>
+                <strong>
+                  {lowStockItems} low-stock items
+                </strong>
+
+                <p>
+                  Review inventory and refill
+                  items when required.
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
+
     </div>
   );
 };

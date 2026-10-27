@@ -1,10 +1,11 @@
-import React, {
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import React, { useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import AppContext from "../context/AppContext";
+import {
+  addBuyer,
+  updateBuyer,
+  removeBuyer,
+} from "../store/reducers/buyersReducer";
 
 import BuyerForm from "../components/buyers/BuyerForm";
 import BuyerTable from "../components/buyers/BuyerTable";
@@ -15,28 +16,17 @@ import ConfirmModal from "../components/common/ConfirmModal";
 import Toast from "../components/common/Toast";
 
 const Buyers = () => {
-  const {
-    buyers,
-    crops,
-    addBuyer,
-    updateBuyer,
-    deleteBuyer,
-  } = useContext(AppContext);
+  const dispatch = useDispatch();
+
+  const buyers = useSelector((state) => state.buyers);
+  const crops = useSelector((state) => state.crops);
 
   const [showForm, setShowForm] = useState(false);
-  const [editingBuyer, setEditingBuyer] =
-    useState(null);
-
-  const [selectedBuyer, setSelectedBuyer] =
-    useState(null);
-
-  const [deleteId, setDeleteId] =
-    useState(null);
-
+  const [editingBuyer, setEditingBuyer] = useState(null);
+  const [selectedBuyer, setSelectedBuyer] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
   const [search, setSearch] = useState("");
-
-  const [sortBy, setSortBy] =
-    useState("newest");
+  const [sortBy, setSortBy] = useState("newest");
 
   const [toast, setToast] = useState({
     show: false,
@@ -44,10 +34,7 @@ const Buyers = () => {
     type: "success",
   });
 
-  const showToast = (
-    message,
-    type = "success"
-  ) => {
+  const showToast = (message, type = "success") => {
     setToast({
       show: true,
       message,
@@ -56,53 +43,43 @@ const Buyers = () => {
   };
 
   const filteredBuyers = useMemo(() => {
-    const result = buyers.filter((buyer) => {
-      const searchValue = search
-        .toLowerCase()
-        .trim();
+    const searchValue = search.toLowerCase().trim();
 
+    const result = buyers.filter((buyer) => {
       return (
-        buyer.name
-          ?.toLowerCase()
-          .includes(searchValue) ||
-        buyer.cnic
-          ?.toLowerCase()
-          .includes(searchValue) ||
-        buyer.phone
-          ?.toLowerCase()
-          .includes(searchValue)
+        buyer.name?.toLowerCase().includes(searchValue) ||
+        buyer.cnic?.toLowerCase().includes(searchValue) ||
+        buyer.phone?.toLowerCase().includes(searchValue)
       );
     });
 
     return [...result].sort((a, b) => {
       if (sortBy === "name") {
-        return a.name.localeCompare(b.name);
+        return (a.name || "").localeCompare(b.name || "");
       }
 
       if (sortBy === "oldest") {
-        return a.id - b.id;
+        return Number(a.id) - Number(b.id);
       }
 
-      return b.id - a.id;
+      return Number(b.id) - Number(a.id);
     });
   }, [buyers, search, sortBy]);
 
   const handleSubmit = (buyerData) => {
     if (editingBuyer) {
-      updateBuyer(
-        editingBuyer.id,
-        buyerData
+      dispatch(
+        updateBuyer({
+          id: editingBuyer.id,
+          data: buyerData,
+        })
       );
 
-      showToast(
-        "Buyer updated successfully."
-      );
+      showToast("Buyer updated successfully.");
     } else {
-      addBuyer(buyerData);
+      dispatch(addBuyer(buyerData));
 
-      showToast(
-        "Buyer added successfully."
-      );
+      showToast("Buyer added successfully.");
     }
 
     setShowForm(false);
@@ -117,13 +94,11 @@ const Buyers = () => {
   const handleDelete = () => {
     if (!deleteId) return;
 
-    deleteBuyer(deleteId);
+    dispatch(removeBuyer(deleteId));
 
     setDeleteId(null);
 
-    showToast(
-      "Buyer deleted successfully."
-    );
+    showToast("Buyer deleted successfully.");
   };
 
   return (
@@ -132,8 +107,7 @@ const Buyers = () => {
         <div>
           <h1>Buyers</h1>
           <p>
-            Manage buyers and their purchase
-            information.
+            Manage buyers and their purchase information.
           </p>
         </div>
 
@@ -144,7 +118,7 @@ const Buyers = () => {
             setShowForm(true);
           }}
         >
-          <i className="bi bi-person-plus"></i>
+          <i className="bi bi-person-plus me-2"></i>
           Add Buyer
         </button>
       </div>
@@ -160,21 +134,11 @@ const Buyers = () => {
           <select
             className="form-select filter-select"
             value={sortBy}
-            onChange={(e) =>
-              setSortBy(e.target.value)
-            }
+            onChange={(e) => setSortBy(e.target.value)}
           >
-            <option value="newest">
-              Newest First
-            </option>
-
-            <option value="oldest">
-              Oldest First
-            </option>
-
-            <option value="name">
-              Name A-Z
-            </option>
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="name">Name A-Z</option>
           </select>
         </div>
       </div>
@@ -203,9 +167,7 @@ const Buyers = () => {
         <BuyerDetailsModal
           buyer={selectedBuyer}
           crops={crops}
-          onClose={() =>
-            setSelectedBuyer(null)
-          }
+          onClose={() => setSelectedBuyer(null)}
         />
       )}
 

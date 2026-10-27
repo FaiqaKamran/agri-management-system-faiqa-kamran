@@ -1,27 +1,28 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import AppContext from "../context/AppContext";
+import {
+  addCrop,
+  updateCrop,
+  removeCrop,
+} from "../store/reducers/cropsReducer";
 
 import CropForm from "../components/crops/CropForm";
 import CropTable from "../components/crops/CropTable";
+
 import SearchBar from "../components/common/SearchBar";
 import ConfirmModal from "../components/common/ConfirmModal";
 import Toast from "../components/common/Toast";
 
 const Crops = () => {
-  const {
-    crops,
-    addCrop,
-    updateCrop,
-    deleteCrop,
-  } = useContext(AppContext);
+  const dispatch = useDispatch();
+
+  const crops = useSelector((state) => state.crops);
 
   const [showForm, setShowForm] = useState(false);
   const [editingCrop, setEditingCrop] = useState(null);
   const [search, setSearch] = useState("");
-  const [healthFilter, setHealthFilter] =
-    useState("All");
-
+  const [healthFilter, setHealthFilter] = useState("All");
   const [deleteId, setDeleteId] = useState(null);
 
   const [toast, setToast] = useState({
@@ -39,18 +40,15 @@ const Crops = () => {
   };
 
   const filteredCrops = useMemo(() => {
+    const searchText = search.toLowerCase().trim();
+
     return crops.filter((crop) => {
-      const searchText = search
-        .toLowerCase()
-        .trim();
+      const cropName = (crop.name || "").toLowerCase();
+      const fieldName = (crop.field || "").toLowerCase();
 
       const matchesSearch =
-        crop.name
-          .toLowerCase()
-          .includes(searchText) ||
-        crop.field
-          .toLowerCase()
-          .includes(searchText);
+        cropName.includes(searchText) ||
+        fieldName.includes(searchText);
 
       const matchesHealth =
         healthFilter === "All" ||
@@ -62,11 +60,16 @@ const Crops = () => {
 
   const handleSubmit = (cropData) => {
     if (editingCrop) {
-      updateCrop(editingCrop.id, cropData);
+      dispatch(
+        updateCrop({
+          id: editingCrop.id,
+          data: cropData,
+        })
+      );
 
       showToast("Crop updated successfully.");
     } else {
-      addCrop(cropData);
+      dispatch(addCrop(cropData));
 
       showToast("Crop added successfully.");
     }
@@ -83,7 +86,7 @@ const Crops = () => {
   const handleDelete = () => {
     if (!deleteId) return;
 
-    deleteCrop(deleteId);
+    dispatch(removeCrop(deleteId));
 
     setDeleteId(null);
 
@@ -96,8 +99,7 @@ const Crops = () => {
         <div>
           <h1>Crop Management</h1>
           <p>
-            Manage crops, health status and
-            harvest schedules.
+            Manage crops, health status and harvest schedules.
           </p>
         </div>
 
@@ -108,7 +110,7 @@ const Crops = () => {
             setShowForm(true);
           }}
         >
-          <i className="bi bi-plus-lg"></i>
+          <i className="bi bi-plus-lg me-2"></i>
           Add Crop
         </button>
       </div>
@@ -124,25 +126,14 @@ const Crops = () => {
           <select
             className="form-select filter-select"
             value={healthFilter}
-            onChange={(e) =>
-              setHealthFilter(e.target.value)
-            }
+            onChange={(e) => setHealthFilter(e.target.value)}
           >
-            <option value="All">
-              All Health Status
-            </option>
-
-            <option value="Healthy">
-              Healthy
-            </option>
-
+            <option value="All">All Health Status</option>
+            <option value="Healthy">Healthy</option>
             <option value="Needs Attention">
               Needs Attention
             </option>
-
-            <option value="Critical">
-              Critical
-            </option>
+            <option value="Critical">Critical</option>
           </select>
         </div>
       </div>

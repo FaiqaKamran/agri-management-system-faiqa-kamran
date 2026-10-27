@@ -1,116 +1,110 @@
-import { useContext } from "react";
-import AppContext from "../../context/AppContext";
-import { getDaysRemaining } from "../../utils/formatters";
+import { useSelector } from "react-redux";
 
 const AlertsPanel = () => {
-  const { crops } = useContext(AppContext);
+  const crops = useSelector((state) => state.crops);
+  const tasks = useSelector((state) => state.tasks);
+  const inventory = useSelector((state) => state.inventory);
 
-  const criticalCrops = crops.filter(
-    (crop) => crop.status === "Critical"
-  );
+  const alerts = [];
 
-  const attentionCrops = crops.filter(
-    (crop) => crop.status === "Needs Attention"
-  );
+  // Critical crops
+  crops
+    .filter(
+      (crop) =>
+        crop.status === "Critical" ||
+        Number(crop.healthScore || 0) < 50
+    )
+    .forEach((crop) => {
+      alerts.push({
+        id: `crop-${crop.id}`,
+        type: "danger",
+        icon: "bi-exclamation-circle",
+        title: "Crop needs attention",
+        message: `${crop.name} has a critical health status.`,
+      });
+    });
 
-  const upcomingCrops = crops.filter(
-    (crop) => {
-      const days = getDaysRemaining(
-        crop.cuttingDate
-      );
+  // Due / overdue tasks
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-      return days >= 0 && days <= 7;
-    }
-  );
+  tasks
+    .filter((task) => {
+      if (!task.dueDate || task.status === "Done") {
+        return false;
+      }
+
+      const dueDate = new Date(task.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+
+      return dueDate <= today;
+    })
+    .forEach((task) => {
+      alerts.push({
+        id: `task-${task.id}`,
+        type: "warning",
+        icon: "bi-list-check",
+        title: "Task due",
+        message: `${task.title} requires attention.`,
+      });
+    });
+
+  // Low inventory
+  inventory
+    .filter(
+      (item) =>
+        Number(item.qty || 0) <=
+        Number(item.minimumQty || 0)
+    )
+    .forEach((item) => {
+      alerts.push({
+        id: `inventory-${item.id}`,
+        type: "info",
+        icon: "bi-box-seam",
+        title: "Low inventory",
+        message: `${item.item} is running low.`,
+      });
+    });
+
+  const visibleAlerts = alerts.slice(0, 5);
 
   return (
     <div className="dashboard-card">
-      <div className="card-header">
+      <div className="dashboard-card-header">
         <div>
           <h5>Alerts</h5>
           <p>Important farm notifications</p>
         </div>
 
-        <i className="bi bi-bell card-header-icon"></i>
+        <span className="dashboard-card-icon">
+          <i className="bi bi-bell"></i>
+        </span>
       </div>
 
-      <div className="alerts-list">
-        {criticalCrops.length > 0 && (
-          <div className="alert-item alert-danger">
-            <div className="alert-icon">
-              <i className="bi bi-exclamation-triangle"></i>
+      {visibleAlerts.length === 0 ? (
+        <div className="empty-state">
+          <i className="bi bi-check-circle"></i>
+          <p>No active alerts.</p>
+        </div>
+      ) : (
+        <div className="alerts-list">
+          {visibleAlerts.map((alert) => (
+            <div
+              className={`alert-item alert-${alert.type}`}
+              key={alert.id}
+            >
+              <div className="alert-icon">
+                <i className={`bi ${alert.icon}`}></i>
+              </div>
+
+              <div>
+                <h6>{alert.title}</h6>
+                <p>{alert.message}</p>
+              </div>
             </div>
-
-            <div>
-              <strong>
-                Critical Crop Health
-              </strong>
-
-              <p>
-                {criticalCrops.length} crop
-                {criticalCrops.length > 1
-                  ? "s"
-                  : ""}{" "}
-                require immediate attention.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {attentionCrops.length > 0 && (
-          <div className="alert-item alert-warning">
-            <div className="alert-icon">
-              <i className="bi bi-exclamation-circle"></i>
-            </div>
-
-            <div>
-              <strong>
-                Health Monitoring Required
-              </strong>
-
-              <p>
-                {attentionCrops.length} crop
-                {attentionCrops.length > 1
-                  ? "s"
-                  : ""}{" "}
-                need monitoring.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {upcomingCrops.length > 0 && (
-          <div className="alert-item alert-info">
-            <div className="alert-icon">
-              <i className="bi bi-calendar-event"></i>
-            </div>
-
-            <div>
-              <strong>Harvest Approaching</strong>
-
-              <p>
-                {upcomingCrops.length} crop
-                {upcomingCrops.length > 1
-                  ? "s"
-                  : ""}{" "}
-                scheduled within 7 days.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {criticalCrops.length === 0 &&
-          attentionCrops.length === 0 &&
-          upcomingCrops.length === 0 && (
-            <div className="no-alerts">
-              <i className="bi bi-check-circle"></i>
-              <strong>All Good!</strong>
-              <p>
-                No critical alerts at the moment.
-              </p>
-            </div>
-          )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

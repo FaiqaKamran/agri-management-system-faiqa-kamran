@@ -1,16 +1,15 @@
-import { useContext } from "react";
-import AppContext from "../../context/AppContext";
-
+import { useSelector } from "react-redux";
 import {
+  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   Tooltip,
-  ResponsiveContainer,
+  Legend,
 } from "recharts";
 
 const CropHealthChart = () => {
-  const { crops } = useContext(AppContext);
+  const crops = useSelector((state) => state.crops);
 
   const healthy = crops.filter(
     (crop) => crop.status === "Healthy"
@@ -40,61 +39,46 @@ const CropHealthChart = () => {
   ];
 
   return (
-    <div className="dashboard-card chart-card">
-      <div className="card-header">
+    <div className="dashboard-card">
+      <div className="dashboard-card-header">
         <div>
           <h5>Crop Health Distribution</h5>
-          <p>Overall crop condition</p>
+          <p>Overall health condition of your crops</p>
         </div>
+
+        <span className="dashboard-card-icon">
+          <i className="bi bi-pie-chart"></i>
+        </span>
       </div>
 
-      {crops.length === 0 ? (
-        <div className="empty-state py-5">
-          <i className="bi bi-pie-chart"></i>
-          <p>No crop health data.</p>
-        </div>
-      ) : (
-        <div className="health-chart-wrapper">
-          <ResponsiveContainer
-            width="100%"
-            height={280}
-          >
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={70}
-                outerRadius={105}
-                paddingAngle={4}
-                dataKey="value"
-              >
-                <Cell />
-                <Cell />
-                <Cell />
-              </Pie>
+      <div
+        style={{
+          width: "100%",
+          height: "300px",
+        }}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={90}
+              innerRadius={50}
+              paddingAngle={3}
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} />
+              ))}
+            </Pie>
 
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-
-          <div className="chart-legend">
-            {data.map((item) => (
-              <div key={item.name}>
-                <span
-                  className={`legend-dot legend-${item.name
-                    .toLowerCase()
-                    .replace(" ", "-")}`}
-                ></span>
-
-                <span>{item.name}</span>
-
-                <strong>{item.value}</strong>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

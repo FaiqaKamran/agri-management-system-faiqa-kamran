@@ -1,9 +1,11 @@
-import React, {
-  useContext,
-  useState,
-} from "react";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
-import AppContext from "../context/AppContext";
+import {
+  addOrder,
+  updateOrder,
+  removeOrder,
+} from "../store/reducers/ordersReducer";
 
 import HarvestSummary from "../components/harvest/HarvestSummary";
 import OrdersSummary from "../components/harvest/OrdersSummary";
@@ -16,18 +18,13 @@ import ConfirmModal from "../components/common/ConfirmModal";
 import Toast from "../components/common/Toast";
 
 const HarvestOrders = () => {
-  const {
-    crops,
-    orders,
-    addOrder,
-    updateOrder,
-    deleteOrder,
-  } = useContext(AppContext);
+  const dispatch = useDispatch();
+
+  const crops = useSelector((state) => state.crops);
+  const orders = useSelector((state) => state.orders);
 
   const [showForm, setShowForm] = useState(false);
-  const [editingOrder, setEditingOrder] =
-    useState(null);
-
+  const [editingOrder, setEditingOrder] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
   const [toast, setToast] = useState({
@@ -46,11 +43,16 @@ const HarvestOrders = () => {
 
   const handleSubmit = (orderData) => {
     if (editingOrder) {
-      updateOrder(editingOrder.id, orderData);
+      dispatch(
+        updateOrder({
+          id: editingOrder.id,
+          data: orderData,
+        })
+      );
 
       showToast("Order updated successfully.");
     } else {
-      addOrder(orderData);
+      dispatch(addOrder(orderData));
 
       showToast("Order added successfully.");
     }
@@ -67,7 +69,7 @@ const HarvestOrders = () => {
   const handleDelete = () => {
     if (!deleteId) return;
 
-    deleteOrder(deleteId);
+    dispatch(removeOrder(deleteId));
 
     setDeleteId(null);
 
@@ -80,8 +82,7 @@ const HarvestOrders = () => {
         <div>
           <h1>Harvest & Orders</h1>
           <p>
-            Monitor harvest production, orders and
-            available stock.
+            Monitor harvest production, orders and available stock.
           </p>
         </div>
 
@@ -92,7 +93,7 @@ const HarvestOrders = () => {
             setShowForm(true);
           }}
         >
-          <i className="bi bi-plus-lg"></i>
+          <i className="bi bi-plus-lg me-2"></i>
           New Order
         </button>
       </div>
@@ -124,9 +125,7 @@ const HarvestOrders = () => {
             <div className="card-header">
               <div>
                 <h5>Order Overview</h5>
-                <p>
-                  Current order status
-                </p>
+                <p>Current order status</p>
               </div>
             </div>
 
@@ -134,12 +133,12 @@ const HarvestOrders = () => {
               <div className="overview-item">
                 <span className="overview-dot delivered"></span>
                 <span>Delivered</span>
+
                 <strong>
                   {
                     orders.filter(
                       (order) =>
-                        order.status ===
-                        "Delivered"
+                        order.status === "Delivered"
                     ).length
                   }
                 </strong>
@@ -148,12 +147,12 @@ const HarvestOrders = () => {
               <div className="overview-item">
                 <span className="overview-dot pending"></span>
                 <span>Pending</span>
+
                 <strong>
                   {
                     orders.filter(
                       (order) =>
-                        order.status ===
-                        "Pending"
+                        order.status === "Pending"
                     ).length
                   }
                 </strong>
@@ -162,12 +161,12 @@ const HarvestOrders = () => {
               <div className="overview-item">
                 <span className="overview-dot cancelled"></span>
                 <span>Cancelled</span>
+
                 <strong>
                   {
                     orders.filter(
                       (order) =>
-                        order.status ===
-                        "Cancelled"
+                        order.status === "Cancelled"
                     ).length
                   }
                 </strong>

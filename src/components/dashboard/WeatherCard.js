@@ -1,121 +1,107 @@
-import React from "react";
-import useWeather from "../../hooks/useWeather";
-import {
-  getWeatherDescription,
-  getWeatherIcon,
-} from "../../services/weatherApi";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchWeather } from "../../store/thunks/fetchWeather";
 
 const WeatherCard = () => {
-  const {
-    weather,
-    loading,
-    error,
-    refreshWeather,
-  } = useWeather();
+  const dispatch = useDispatch();
 
-  if (loading) {
-    return (
-      <div className="dashboard-card weather-card">
-        <div className="card-header">
-          <div>
-            <h5>Live Weather</h5>
-            <p>Lahore, Pakistan</p>
-          </div>
-        </div>
+  const weather = useSelector((state) => state.weather);
 
-        <div className="weather-loading">
-          <div className="spinner-border"></div>
-          <p>Loading weather...</p>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (weather.status === "idle") {
+      dispatch(fetchWeather());
+    }
+  }, [dispatch, weather.status]);
 
-  if (error || !weather) {
-    return (
-      <div className="dashboard-card weather-card">
-        <div className="card-header">
-          <div>
-            <h5>Live Weather</h5>
-            <p>Lahore, Pakistan</p>
-          </div>
+  const current = weather.data?.current;
 
-          <button
-            className="btn btn-sm btn-outline-success"
-            onClick={refreshWeather}
-          >
-            <i className="bi bi-arrow-clockwise"></i>
-          </button>
-        </div>
+  const temperature = current?.temperature_2m;
+  const wind = current?.wind_speed_10m;
+  const rain = current?.rain;
 
-        <div className="weather-error">
-          <i className="bi bi-cloud-slash"></i>
-          <p>{error || "Weather unavailable."}</p>
-        </div>
-      </div>
-    );
-  }
-
-  const current = weather.current;
+  const handleRefresh = () => {
+    dispatch(fetchWeather());
+  };
 
   return (
     <div className="dashboard-card weather-card">
-      <div className="card-header">
+      <div className="dashboard-card-header">
         <div>
-          <h5>Live Weather</h5>
-          <p>
-            <i className="bi bi-geo-alt"></i>{" "}
-            Lahore, Pakistan
-          </p>
+          <h5>Lahore Weather</h5>
+          <p>Live weather conditions</p>
         </div>
 
         <button
-          className="btn btn-sm btn-light"
-          onClick={refreshWeather}
-          title="Refresh weather"
+          type="button"
+          className="btn btn-sm btn-outline-success"
+          onClick={handleRefresh}
+          disabled={weather.status === "loading"}
         >
-          <i className="bi bi-arrow-clockwise"></i>
+          <i className="bi bi-arrow-clockwise me-1"></i>
+          {weather.status === "loading" ? "Loading..." : "Refresh"}
         </button>
       </div>
 
-      <div className="weather-main">
-        <div className="weather-icon">
-          <i
-            className={`bi ${getWeatherIcon(
-              current.weatherCode
-            )}`}
-          ></i>
+      {weather.status === "failed" ? (
+        <div className="alert alert-warning mb-0">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          {weather.error || "Unable to load weather data."}
         </div>
+      ) : (
+        <div className="weather-main">
+          <div className="weather-temperature">
+            <i className="bi bi-cloud-sun"></i>
 
-        <div>
-          <h2>{Math.round(current.temperature)}°C</h2>
-          <p>
-            {getWeatherDescription(
-              current.weatherCode
-            )}
-          </p>
-        </div>
-      </div>
+            <div>
+              <h2>
+                {temperature !== undefined
+                  ? `${Math.round(temperature)}°C`
+                  : "--"}
+              </h2>
 
-      <div className="weather-details">
-        <div>
-          <i className="bi bi-droplet"></i>
-          <span>Humidity</span>
-          <strong>{current.humidity}%</strong>
-        </div>
+              <span>Lahore, Pakistan</span>
+            </div>
+          </div>
 
-        <div>
-          <i className="bi bi-wind"></i>
-          <span>Wind</span>
-          <strong>{current.wind} km/h</strong>
-        </div>
+          <div className="weather-details">
+            <div>
+              <i className="bi bi-wind"></i>
+              <span>Wind</span>
+              <strong>
+                {wind !== undefined ? `${wind} km/h` : "--"}
+              </strong>
+            </div>
 
-        <div>
-          <i className="bi bi-cloud-rain"></i>
-          <span>Rain</span>
-          <strong>{current.rain} mm</strong>
+            <div>
+              <i className="bi bi-cloud-rain"></i>
+              <span>Rain</span>
+              <strong>
+                {rain !== undefined ? `${rain} mm` : "--"}
+              </strong>
+            </div>
+
+            <div>
+              <i className="bi bi-droplet"></i>
+              <span>Humidity</span>
+              <strong>
+                {current?.relative_humidity_2m !== undefined
+                  ? `${current.relative_humidity_2m}%`
+                  : "--"}
+              </strong>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {weather.lastUpdated && (
+        <div className="weather-updated">
+          Updated:{" "}
+          {new Date(weather.lastUpdated).toLocaleTimeString("en-PK", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </div>
+      )}
     </div>
   );
 };

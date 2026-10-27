@@ -1,88 +1,78 @@
-import React from "react";
-import useWeather from "../../hooks/useWeather";
-import {
-  getWeatherDescription,
-  getWeatherIcon,
-} from "../../services/weatherApi";
+import { useSelector } from "react-redux";
 
 const ForecastStrip = () => {
-  const { weather, loading } = useWeather();
+  const weather = useSelector((state) => state.weather);
 
-  if (loading || !weather) {
+  const daily = weather.data?.daily;
+
+  if (!daily?.time) {
     return (
       <div className="dashboard-card">
-        <div className="card-header">
+        <div className="dashboard-card-header">
           <div>
             <h5>5-Day Forecast</h5>
-            <p>Weather outlook for Lahore</p>
+            <p>Weather forecast for Lahore</p>
           </div>
         </div>
 
-        <div className="text-center py-4">
-          <div className="spinner-border spinner-border-sm"></div>
+        <div className="text-muted">
+          Forecast data is loading...
         </div>
       </div>
     );
   }
 
+  const getWeatherIcon = (code) => {
+    if (code === 0) return "bi-sun";
+    if ([1, 2, 3].includes(code)) return "bi-cloud-sun";
+    if ([45, 48].includes(code)) return "bi-cloud-fog";
+    if ([51, 53, 55, 56, 57].includes(code)) return "bi-cloud-drizzle";
+    if ([61, 63, 65, 66, 67].includes(code)) return "bi-cloud-rain";
+    if ([71, 73, 75, 77].includes(code)) return "bi-cloud-snow";
+    if ([80, 81, 82].includes(code)) return "bi-cloud-rain-heavy";
+    if ([95, 96, 99].includes(code)) return "bi-cloud-lightning";
+    return "bi-cloud";
+  };
+
   return (
     <div className="dashboard-card">
-      <div className="card-header">
+      <div className="dashboard-card-header">
         <div>
           <h5>5-Day Forecast</h5>
-          <p>Weather outlook for Lahore</p>
+          <p>Upcoming weather conditions</p>
         </div>
+
+        <span className="dashboard-card-icon">
+          <i className="bi bi-calendar3"></i>
+        </span>
       </div>
 
       <div className="forecast-strip">
-        {weather.daily.dates.map((date, index) => {
-          const day = new Date(date).toLocaleDateString(
-            "en-PK",
-            {
-              weekday: "short",
-            }
-          );
+        {daily.time.map((date, index) => (
+          <div className="forecast-day" key={date}>
+            <span className="forecast-date">
+              {index === 0
+                ? "Today"
+                : new Date(date).toLocaleDateString("en-PK", {
+                    weekday: "short",
+                  })}
+            </span>
 
-          return (
-            <div className="forecast-item" key={date}>
-              <strong>
-                {index === 0 ? "Today" : day}
-              </strong>
+            <i
+              className={`bi ${getWeatherIcon(
+                daily.weather_code?.[index]
+              )} forecast-icon`}
+            ></i>
 
-              <i
-                className={`bi ${getWeatherIcon(
-                  weather.daily.weatherCodes[index]
-                )}`}
-              ></i>
+            <strong>
+              {Math.round(daily.temperature_2m_max?.[index] || 0)}°
+            </strong>
 
-              <span>
-                {Math.round(
-                  weather.daily.maxTemps[index]
-                )}
-                °
-                <small>
-                  {" "}
-                  /{" "}
-                  {Math.round(
-                    weather.daily.minTemps[index]
-                  )}
-                  °
-                </small>
-              </span>
-
-              <small>
-                <i className="bi bi-droplet"></i>{" "}
-                {weather.daily.rainProbability[index]}%
-              </small>
-
-              <em>
-                {getWeatherDescription(
-                  weather.daily.weatherCodes[index]
-                )}
-              </em>
-            </div>
-          );
-        })}
+            <span>
+              {Math.round(daily.temperature_2m_min?.[index] || 0)}°
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

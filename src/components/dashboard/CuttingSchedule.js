@@ -1,15 +1,11 @@
-import React from "react";
-import { useContext } from "react";
-import AppContext from "../../context/AppContext";
-import {
-  formatDate,
-  getDaysRemaining,
-} from "../../utils/formatters";
+import { useSelector } from "react-redux";
+import { formatDate, getDaysRemaining } from "../../utils/formatters";
 
 const CuttingSchedule = () => {
-  const { crops } = useContext(AppContext);
+  const crops = useSelector((state) => state.crops);
 
   const upcomingCrops = [...crops]
+    .filter((crop) => crop.cuttingDate)
     .sort(
       (a, b) =>
         new Date(a.cuttingDate) -
@@ -17,15 +13,47 @@ const CuttingSchedule = () => {
     )
     .slice(0, 5);
 
+  const getScheduleStatus = (date) => {
+    const days = getDaysRemaining(date);
+
+    if (days < 0) {
+      return {
+        text: "Overdue",
+        className: "text-danger",
+      };
+    }
+
+    if (days === 0) {
+      return {
+        text: "Today",
+        className: "text-warning",
+      };
+    }
+
+    if (days <= 7) {
+      return {
+        text: `${days} days`,
+        className: "text-warning",
+      };
+    }
+
+    return {
+      text: `${days} days`,
+      className: "text-success",
+    };
+  };
+
   return (
     <div className="dashboard-card">
-      <div className="card-header">
+      <div className="dashboard-card-header">
         <div>
           <h5>Upcoming Harvests</h5>
-          <p>Cutting schedule</p>
+          <p>Scheduled crop cutting dates</p>
         </div>
 
-        <i className="bi bi-calendar3 card-header-icon"></i>
+        <span className="dashboard-card-icon">
+          <i className="bi bi-calendar-check"></i>
+        </span>
       </div>
 
       {upcomingCrops.length === 0 ? (
@@ -36,7 +64,7 @@ const CuttingSchedule = () => {
       ) : (
         <div className="schedule-list">
           {upcomingCrops.map((crop) => {
-            const days = getDaysRemaining(
+            const status = getScheduleStatus(
               crop.cuttingDate
             );
 
@@ -45,45 +73,20 @@ const CuttingSchedule = () => {
                 className="schedule-item"
                 key={crop.id}
               >
-                <div className="schedule-date">
-                  <strong>
-                    {new Date(
-                      crop.cuttingDate
-                    ).getDate()}
-                  </strong>
-
-                  <span>
-                    {new Date(
-                      crop.cuttingDate
-                    ).toLocaleDateString(
-                      "en-PK",
-                      {
-                        month: "short",
-                      }
-                    )}
-                  </span>
+                <div className="schedule-icon">
+                  <i className="bi bi-flower1"></i>
                 </div>
 
                 <div className="schedule-info">
-                  <strong>{crop.name}</strong>
-                  <span>{crop.field}</span>
-                  <small>
+                  <h6>{crop.name}</h6>
+
+                  <span>
                     {formatDate(crop.cuttingDate)}
-                  </small>
+                  </span>
                 </div>
 
-                <div
-                  className={`days-left ${
-                    days <= 7
-                      ? "urgent"
-                      : ""
-                  }`}
-                >
-                  {days < 0
-                    ? "Overdue"
-                    : days === 0
-                    ? "Today"
-                    : `${days} days`}
+                <div className={status.className}>
+                  {status.text}
                 </div>
               </div>
             );
