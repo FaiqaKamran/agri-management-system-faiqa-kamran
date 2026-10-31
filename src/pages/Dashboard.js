@@ -8,7 +8,10 @@ import {
 } from "react-redux";
 
 import StatCard from "../components/common/StatCard";
-
+import WorkerStats from "../components/dashboard/WorkerStats";
+import AttendanceChart from "../components/dashboard/AttendanceChart";
+import WorkerAttendanceAlert from "../components/dashboard/WorkerAttendanceAlert";
+import QuickAttendance from "../components/dashboard/QuickAttendance";
 import WeatherCard from "../components/dashboard/WeatherCard";
 import HumidityGauge from "../components/dashboard/HumidityGauge";
 import ForecastStrip from "../components/dashboard/ForecastStrip";
@@ -16,6 +19,9 @@ import CropHealthList from "../components/dashboard/CropHealthList";
 import CropHealthChart from "../components/dashboard/CropHealthChart";
 import CuttingSchedule from "../components/dashboard/CuttingSchedule";
 import AlertsPanel from "../components/dashboard/AlertsPanel";
+import EquipmentStats from "../components/dashboard/EquipmentStats";
+import EquipmentServiceSchedule from "../components/dashboard/EquipmentServiceSchedule";
+import EquipmentAlerts from "../components/dashboard/EquipmentAlerts";
 
 import {
   fetchWeather,
@@ -112,6 +118,34 @@ const Dashboard = () => {
         </div>
 
       </div>
+
+      <WorkerAttendanceAlert />
+
+<WorkerStats />
+
+<div className="row g-4 mb-4">
+  <div className="col-lg-8">
+    <AttendanceChart />
+  </div>
+
+  <div className="col-lg-4">
+    <QuickAttendance />
+  </div>
+</div>
+
+<EquipmentStats />
+
+<div className="row g-4 mb-4">
+
+  <div className="col-lg-8">
+    <EquipmentServiceSchedule />
+  </div>
+
+  <div className="col-lg-4">
+    <EquipmentAlerts />
+  </div>
+
+</div>
 
       {/* FINANCIAL STATS */}
 

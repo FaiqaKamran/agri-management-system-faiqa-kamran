@@ -3,6 +3,11 @@ import { writeStorage } from "../../api/storageApi";
 const persistMiddleware = (store) => (next) => (action) => {
   const result = next(action);
 
+  // Do not persist while Redux is loading saved data
+  if (action.meta?.rehydrating) {
+    return result;
+  }
+
   const state = store.getState();
 
   writeStorage("agri_crops", state.crops);
@@ -11,6 +16,12 @@ const persistMiddleware = (store) => (next) => (action) => {
   writeStorage("agri_tasks", state.tasks);
   writeStorage("agri_expenses", state.expenses);
   writeStorage("agri_inventory", state.inventory);
+
+  writeStorage("agri_workers", state.workers);
+  writeStorage("agri_attendance", state.attendance);
+  writeStorage("agri_equipment", state.equipment);
+  writeStorage("agri_maintenance", state.maintenance);
+
   writeStorage("agri_activity", state.activity);
 
   if (state.auth?.isAuthenticated) {

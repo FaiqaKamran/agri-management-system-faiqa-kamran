@@ -1,14 +1,8 @@
-import React from "react";
-
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-} from "react-router-dom";
+import {BrowserRouter,Routes,Route,} from "react-router-dom";
 
 import Navbar from "./components/common/Navbar";
 import Sidebar from "./components/common/Sidebar";
-
+import Workers from "./pages/Workers";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Crops from "./pages/Crops";
@@ -18,6 +12,10 @@ import Tasks from "./pages/Tasks";
 import Expenses from "./pages/Expenses";
 import Inventory from "./pages/Inventory";
 import Reports from "./pages/Reports";
+import Attendance from "./pages/Attendance";
+import Wages from "./pages/Wages";
+import Equipment from "./pages/Equipment";
+import Maintenance from "./pages/Maintenance";
 import NotFound from "./pages/NotFound";
 
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -40,6 +38,12 @@ const MainLayout = () => {
               path="/"
               element={<Dashboard />}
             />
+
+            <Route path="/workers" element={<Workers />} />
+            <Route path="/attendance"element={<Attendance />}/>
+            <Route path="/wages" element={<Wages />} />
+            <Route path="/equipment"element={<Equipment />}/>
+            <Route path="/maintenance"element={<Maintenance />}/>
 
             <Route
               path="/dashboard"

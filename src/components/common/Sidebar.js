@@ -39,6 +39,31 @@ const Sidebar = () => {
       icon: "bi-box-seam",
     },
     {
+      path: "/workers",
+      label: "Workers",
+      icon: "bi-people",
+    },
+    {
+      path: "/attendance",
+      label: "Attendance",
+      icon: "bi-calendar-check",
+    },
+    {
+      path: "/wages",
+      label: "Wages",
+      icon: "bi-cash-coin",
+    },
+    {
+      path: "/equipment",
+      label: "Equipment",
+      icon: "bi-tools",
+    },
+    {
+    path: "/maintenance",
+    label: "Maintenance",
+    icon: "bi-wrench-adjustable",
+    },
+    {
       path: "/reports",
       label: "Reports",
       icon: "bi-bar-chart",
