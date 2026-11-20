@@ -1,7 +1,12 @@
-import {BrowserRouter,Routes,Route,} from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from "react-router-dom";
 
 import Navbar from "./components/common/Navbar";
 import Sidebar from "./components/common/Sidebar";
+
 import Workers from "./pages/Workers";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -16,6 +21,7 @@ import Attendance from "./pages/Attendance";
 import Wages from "./pages/Wages";
 import Equipment from "./pages/Equipment";
 import Maintenance from "./pages/Maintenance";
+import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -39,11 +45,43 @@ const MainLayout = () => {
               element={<Dashboard />}
             />
 
-            <Route path="/workers" element={<Workers />} />
-            <Route path="/attendance"element={<Attendance />}/>
-            <Route path="/wages" element={<Wages />} />
-            <Route path="/equipment"element={<Equipment />}/>
-            <Route path="/maintenance"element={<Maintenance />}/>
+            <Route
+              path="/workers"
+              element={<Workers />}
+            />
+
+            <Route
+              path="/attendance"
+              element={<Attendance />}
+            />
+
+            <Route
+              path="/wages"
+              element={<Wages />}
+            />
+
+            <Route
+              path="/equipment"
+              element={<Equipment />}
+            />
+
+            <Route
+              path="/maintenance"
+              element={<Maintenance />}
+            />
+
+            {/* Admin Only Registration */}
+            <Route
+              path="/register"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]} />
+              }
+            >
+              <Route
+                index
+                element={<Register />}
+              />
+            </Route>
 
             <Route
               path="/dashboard"
@@ -106,11 +144,13 @@ const App = () => {
 
       <Routes>
 
+        {/* Public Login */}
         <Route
           path="/login"
           element={<Login />}
         />
 
+        {/* All other pages require login */}
         <Route element={<ProtectedRoute />}>
 
           <Route

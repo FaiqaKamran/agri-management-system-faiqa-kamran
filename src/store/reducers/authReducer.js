@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-
 import { readStorage } from "../../api/storageApi";
 
 const savedSession = readStorage(

@@ -8,7 +8,10 @@ const {
   logout,
 } = require("../controllers/userController");
 
-const { protect } = require("../middleware/authMiddleware");
+const {
+  protect,
+  authorize,
+} = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -22,9 +25,46 @@ const loginLimiter = rateLimit({
   },
 });
 
-router.post("/register", register);
-router.post("/login", loginLimiter, login);
-router.get("/me", protect, getMe);
-router.post("/logout", protect, logout);
+
+/*
+  Only Admin can register new users
+*/
+router.post(
+  "/register",
+  protect,
+  authorize("admin"),
+  register
+);
+
+
+/*
+  Login is public
+*/
+router.post(
+  "/login",
+  loginLimiter,
+  login
+);
+
+
+/*
+  Get currently logged-in user
+*/
+router.get(
+  "/me",
+  protect,
+  getMe
+);
+
+
+/*
+  Logout
+*/
+router.post(
+  "/logout",
+  protect,
+  logout
+);
+
 
 module.exports = router;

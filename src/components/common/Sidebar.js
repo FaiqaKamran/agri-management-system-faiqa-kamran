@@ -1,7 +1,10 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const Sidebar = () => {
+  const role = useSelector((state) => state.auth?.role);
+
   const menuItems = [
     {
       path: "/dashboard",
@@ -59,9 +62,9 @@ const Sidebar = () => {
       icon: "bi-tools",
     },
     {
-    path: "/maintenance",
-    label: "Maintenance",
-    icon: "bi-wrench-adjustable",
+      path: "/maintenance",
+      label: "Maintenance",
+      icon: "bi-wrench-adjustable",
     },
     {
       path: "/reports",
@@ -96,6 +99,18 @@ const Sidebar = () => {
             <span>{item.label}</span>
           </NavLink>
         ))}
+
+        {role === "admin" && (
+          <NavLink
+            to="/register"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
+            }
+          >
+            <i className="bi bi-person-plus"></i>
+            <span>Register User</span>
+          </NavLink>
+        )}
       </nav>
 
       <div className="sidebar-footer">

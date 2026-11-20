@@ -3,9 +3,19 @@ const generateToken = require("../utils/generateToken");
 
 const register = async (req, res) => {
   try {
-    const { fullName, username, email, password } = req.body;
+    const {
+      fullName,
+      username,
+      email,
+      password,
+    } = req.body;
 
-    if (!fullName || !username || !email || !password) {
+    if (
+      !fullName ||
+      !username ||
+      !email ||
+      !password
+    ) {
       return res.status(400).json({
         succeeded: false,
         message: "All fields are required.",
@@ -21,8 +31,14 @@ const register = async (req, res) => {
       });
     }
 
+    const cleanFullName = fullName.trim();
+    const cleanUsername = username.trim();
+    const cleanEmail = email.trim().toLowerCase();
+
     const existingUsername = await User.findOne({
-      where: { username },
+      where: {
+        username: cleanUsername,
+      },
     });
 
     if (existingUsername) {
@@ -34,7 +50,9 @@ const register = async (req, res) => {
     }
 
     const existingEmail = await User.findOne({
-      where: { email },
+      where: {
+        email: cleanEmail,
+      },
     });
 
     if (existingEmail) {
@@ -46,29 +64,27 @@ const register = async (req, res) => {
     }
 
     const user = await User.create({
-      fullName,
-      username,
-      email,
+      fullName: cleanFullName,
+      username: cleanUsername,
+      email: cleanEmail,
       password,
       role: "manager",
     });
 
-    const token = generateToken(user);
-
     return res.status(201).json({
       succeeded: true,
       message: "Registration successful",
-      user: {
+      data: {
         id: user.id,
         fullName: user.fullName,
         username: user.username,
         email: user.email,
         role: user.role,
-        token,
       },
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("Registration error:", error);
 
     return res.status(500).json({
       succeeded: false,
@@ -78,11 +94,19 @@ const register = async (req, res) => {
   }
 };
 
+
 const login = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const {
+      username,
+      email,
+      password,
+    } = req.body;
 
-    if ((!username && !email) || !password) {
+    if (
+      (!username && !email) ||
+      !password
+    ) {
       return res.status(400).json({
         succeeded: false,
         message: "Username/email and password are required.",
@@ -91,7 +115,13 @@ const login = async (req, res) => {
     }
 
     const user = await User.findOne({
-      where: username ? { username } : { email },
+      where: username
+        ? {
+            username: username.trim(),
+          }
+        : {
+            email: email.trim().toLowerCase(),
+          },
     });
 
     if (!user) {
@@ -102,7 +132,8 @@ const login = async (req, res) => {
       });
     }
 
-    const passwordMatch = await user.comparePassword(password);
+    const passwordMatch =
+      await user.comparePassword(password);
 
     if (!passwordMatch) {
       return res.status(401).json({
@@ -126,8 +157,9 @@ const login = async (req, res) => {
         token,
       },
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("Login error:", error);
 
     return res.status(500).json({
       succeeded: false,
@@ -137,6 +169,7 @@ const login = async (req, res) => {
   }
 };
 
+
 const getMe = async (req, res) => {
   return res.status(200).json({
     succeeded: true,
@@ -145,6 +178,7 @@ const getMe = async (req, res) => {
   });
 };
 
+
 const logout = async (req, res) => {
   return res.status(200).json({
     succeeded: true,
@@ -152,6 +186,7 @@ const logout = async (req, res) => {
     data: null,
   });
 };
+
 
 module.exports = {
   register,

@@ -13,12 +13,17 @@ const Navbar = () => {
   );
 
   const handleLogout = () => {
+    localStorage.removeItem("agri_token");
+    localStorage.removeItem("agri_session");
+
     dispatch(logout());
+
     navigate("/login");
   };
 
   return (
     <header className="top-navbar">
+
       <div className="navbar-left">
         <div>
           <h5>Farm Management</h5>
@@ -27,6 +32,7 @@ const Navbar = () => {
       </div>
 
       <div className="navbar-right">
+
         <button
           type="button"
           className="navbar-icon-btn"
@@ -36,6 +42,7 @@ const Navbar = () => {
         </button>
 
         <div className="navbar-user">
+
           <div className="navbar-user-avatar">
             {user?.name
               ? user.name.charAt(0).toUpperCase()
@@ -43,14 +50,19 @@ const Navbar = () => {
           </div>
 
           <div className="navbar-user-info">
-            <strong>{user?.name || "User"}</strong>
+
+            <strong>
+              {user?.name || "User"}
+            </strong>
 
             <small>
-              {role === "Admin"
+              {role === "admin"
                 ? "Administrator"
                 : "Farm Manager"}
             </small>
+
           </div>
+
         </div>
 
         <button
@@ -61,7 +73,9 @@ const Navbar = () => {
           <i className="bi bi-box-arrow-right"></i>
           Logout
         </button>
+
       </div>
+
     </header>
   );
 };

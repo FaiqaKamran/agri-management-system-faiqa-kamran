@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { login } from "../../store/reducers/authReducer";
+import apiClient from "../../api/apiClient";
 
 const LoginForm = () => {
   const dispatch = useDispatch();
@@ -11,55 +12,59 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const demoUsers = [
-    {
-      email: "admin@agri.com",
-      password: "admin123",
-      name: "Farm Admin",
-      role: "Admin",
-    },
-    {
-      email: "manager@agri.com",
-      password: "manager123",
-      name: "Farm Manager",
-      role: "Manager",
-    },
-  ];
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     setError("");
+    setLoading(true);
 
-    const user = demoUsers.find(
-      (item) =>
-        item.email.toLowerCase() === email.trim().toLowerCase() &&
-        item.password === password
-    );
+    try {
+      const response = await apiClient("/users/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      });
 
-    if (!user) {
-      setError("Invalid email or password.");
-      return;
+      const user = response.user;
+
+      localStorage.setItem("agri_token", user.token);
+
+      dispatch(
+        login({
+          user: {
+            id: user.id,
+            name: user.fullName,
+            fullName: user.fullName,
+            username: user.username,
+            email: user.email,
+            token: user.token,
+          },
+          role: user.role,
+        })
+      );
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(
+        error.message || "Invalid email or password."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    dispatch(
-      login({
-        user: {
-          name: user.name,
-          email: user.email,
-        },
-        role: user.role,
-      })
-    );
-
-    navigate("/dashboard");
   };
 
   return (
     <div className="login-page">
+
       <div className="login-card">
+
         <div className="login-header">
+
           <div className="login-icon">
             <i className="bi bi-flower1"></i>
           </div>
@@ -69,9 +74,11 @@ const LoginForm = () => {
           <p>
             Sign in to manage your farm operations.
           </p>
+
         </div>
 
         <form onSubmit={handleSubmit}>
+
           {error && (
             <div className="alert alert-danger">
               {error}
@@ -79,6 +86,7 @@ const LoginForm = () => {
           )}
 
           <div className="mb-3">
+
             <label className="form-label">
               Email
             </label>
@@ -87,13 +95,17 @@ const LoginForm = () => {
               type="email"
               className="form-control"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
               placeholder="Enter your email"
               required
             />
+
           </div>
 
           <div className="mb-3">
+
             <label className="form-label">
               Password
             </label>
@@ -102,33 +114,34 @@ const LoginForm = () => {
               type="password"
               className="form-control"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
               placeholder="Enter your password"
               required
             />
+
           </div>
 
           <button
             type="submit"
             className="btn btn-success w-100"
+            disabled={loading}
           >
-            <i className="bi bi-box-arrow-in-right me-2"></i>
-            Login
+            {loading ? (
+              "Signing in..."
+            ) : (
+              <>
+                <i className="bi bi-box-arrow-in-right me-2"></i>
+                Login
+              </>
+            )}
           </button>
+
         </form>
 
-        <div className="demo-login">
-          <h6>Demo Credentials</h6>
-
-          <p className="mb-1">
-            <strong>Admin:</strong> admin@agri.com / admin123
-          </p>
-
-          <p className="mb-0">
-            <strong>Manager:</strong> manager@agri.com / manager123
-          </p>
-        </div>
       </div>
+
     </div>
   );
 };
