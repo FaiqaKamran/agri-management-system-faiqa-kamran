@@ -22,6 +22,7 @@ import Wages from "./pages/Wages";
 import Equipment from "./pages/Equipment";
 import Maintenance from "./pages/Maintenance";
 import Register from "./pages/Register";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -42,6 +43,11 @@ const MainLayout = () => {
 
             <Route
               path="/"
+              element={<Dashboard />}
+            />
+
+            <Route
+              path="/dashboard"
               element={<Dashboard />}
             />
 
@@ -68,24 +74,6 @@ const MainLayout = () => {
             <Route
               path="/maintenance"
               element={<Maintenance />}
-            />
-
-            {/* Admin Only Registration */}
-            <Route
-              path="/register"
-              element={
-                <ProtectedRoute allowedRoles={["admin"]} />
-              }
-            >
-              <Route
-                index
-                element={<Register />}
-              />
-            </Route>
-
-            <Route
-              path="/dashboard"
-              element={<Dashboard />}
             />
 
             <Route
@@ -122,6 +110,32 @@ const MainLayout = () => {
               path="/reports"
               element={<Reports />}
             />
+
+            {/* Admin Only Registration */}
+            <Route
+              path="/register"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]} />
+              }
+            >
+              <Route
+                index
+                element={<Register />}
+              />
+            </Route>
+
+            {/* Admin Only User Management */}
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]} />
+              }
+            >
+              <Route
+                index
+                element={<UserManagement />}
+              />
+            </Route>
 
             <Route
               path="*"

@@ -75,7 +75,9 @@ const Sidebar = () => {
 
   return (
     <aside className="sidebar">
+
       <div className="sidebar-brand">
+
         <div className="brand-icon">
           <i className="bi bi-flower1"></i>
         </div>
@@ -84,9 +86,11 @@ const Sidebar = () => {
           <h5>Agri Management</h5>
           <span>Farm Operations</span>
         </div>
+
       </div>
 
       <nav className="sidebar-nav">
+
         {menuItems.map((item) => (
           <NavLink
             key={item.path}
@@ -100,6 +104,20 @@ const Sidebar = () => {
           </NavLink>
         ))}
 
+        {/* Admin Only - User Management */}
+        {role === "admin" && (
+          <NavLink
+            to="/users"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? "active" : ""}`
+            }
+          >
+            <i className="bi bi-person-gear"></i>
+            <span>User Management</span>
+          </NavLink>
+        )}
+
+        {/* Admin Only - Register User */}
         {role === "admin" && (
           <NavLink
             to="/register"
@@ -111,18 +129,24 @@ const Sidebar = () => {
             <span>Register User</span>
           </NavLink>
         )}
+
       </nav>
 
       <div className="sidebar-footer">
+
         <div className="sidebar-footer-content">
+
           <i className="bi bi-shield-check"></i>
 
           <div>
             <strong>Secure System</strong>
             <small>Role-based access</small>
           </div>
+
         </div>
+
       </div>
+
     </aside>
   );
 };

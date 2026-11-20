@@ -188,9 +188,100 @@ const logout = async (req, res) => {
 };
 
 
+/*
+  Get all users
+  Only Admin can access this endpoint
+*/
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: [
+        "id",
+        "fullName",
+        "username",
+        "email",
+        "role",
+        "createdAt",
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    return res.status(200).json({
+      succeeded: true,
+      message: "Users fetched successfully.",
+      data: users,
+    });
+  } catch (error) {
+    console.error("Get users error:", error);
+
+    return res.status(500).json({
+      succeeded: false,
+      message: "Failed to fetch users.",
+      data: null,
+    });
+  }
+};
+
+
+/*
+  Delete user
+  Only Admin can delete users
+*/
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        succeeded: false,
+        message: "User ID is required.",
+        data: null,
+      });
+    }
+
+    // Admin cannot delete their own account
+    if (req.user.id === id) {
+      return res.status(400).json({
+        succeeded: false,
+        message: "You cannot delete your own account.",
+        data: null,
+      });
+    }
+
+    const user = await User.findByPk(id);
+
+    if (!user) {
+      return res.status(404).json({
+        succeeded: false,
+        message: "User not found.",
+        data: null,
+      });
+    }
+
+    await user.destroy();
+
+    return res.status(200).json({
+      succeeded: true,
+      message: "User deleted successfully.",
+      data: null,
+    });
+  } catch (error) {
+    console.error("Delete user error:", error);
+
+    return res.status(500).json({
+      succeeded: false,
+      message: "Failed to delete user.",
+      data: null,
+    });
+  }
+};
+
+
 module.exports = {
   register,
   login,
   getMe,
   logout,
+  getUsers,
+  deleteUser,
 };

@@ -6,6 +6,8 @@ const {
   login,
   getMe,
   logout,
+  getUsers,
+  deleteUser,
 } = require("../controllers/userController");
 
 const {
@@ -64,6 +66,30 @@ router.post(
   "/logout",
   protect,
   logout
+);
+
+
+/*
+  Get all users
+  Only Admin can access this
+*/
+router.get(
+  "/",
+  protect,
+  authorize("admin"),
+  getUsers
+);
+
+
+/*
+  Delete user
+  Only Admin can delete users
+*/
+router.delete(
+  "/:id",
+  protect,
+  authorize("admin"),
+  deleteUser
 );
 
 
