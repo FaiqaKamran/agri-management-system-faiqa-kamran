@@ -224,6 +224,155 @@ const getUsers = async (req, res) => {
 
 
 /*
+  Update user
+  Only Admin can update users
+*/
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const {
+      fullName,
+      username,
+      email,
+      password,
+    } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        succeeded: false,
+        message: "User ID is required.",
+        data: null,
+      });
+    }
+
+    if (
+      !fullName &&
+      !username &&
+      !email &&
+      !password
+    ) {
+      return res.status(400).json({
+        succeeded: false,
+        message: "At least one field is required to update.",
+        data: null,
+      });
+    }
+
+    const user = await User.findByPk(id);
+
+    if (!user) {
+      return res.status(404).json({
+        succeeded: false,
+        message: "User not found.",
+        data: null,
+      });
+    }
+
+    /*
+      Check username duplication
+    */
+    if (username) {
+      const cleanUsername = username.trim();
+
+      const existingUsername = await User.findOne({
+        where: {
+          username: cleanUsername,
+        },
+      });
+
+      if (
+        existingUsername &&
+        existingUsername.id !== id
+      ) {
+        return res.status(409).json({
+          succeeded: false,
+          message: "Username already exists.",
+          data: null,
+        });
+      }
+
+      user.username = cleanUsername;
+    }
+
+
+    /*
+      Check email duplication
+    */
+    if (email) {
+      const cleanEmail = email.trim().toLowerCase();
+
+      const existingEmail = await User.findOne({
+        where: {
+          email: cleanEmail,
+        },
+      });
+
+      if (
+        existingEmail &&
+        existingEmail.id !== id
+      ) {
+        return res.status(409).json({
+          succeeded: false,
+          message: "Email already exists.",
+          data: null,
+        });
+      }
+
+      user.email = cleanEmail;
+    }
+
+
+    /*
+      Update full name
+    */
+    if (fullName) {
+      user.fullName = fullName.trim();
+    }
+
+
+    /*
+      Update password
+    */
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({
+          succeeded: false,
+          message: "Password must be at least 6 characters.",
+          data: null,
+        });
+      }
+
+      user.password = password;
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      succeeded: true,
+      message: "User updated successfully.",
+      data: {
+        id: user.id,
+        fullName: user.fullName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
+
+  } catch (error) {
+    console.error("Update user error:", error);
+
+    return res.status(500).json({
+      succeeded: false,
+      message: "Failed to update user.",
+      data: null,
+    });
+  }
+};
+
+
+/*
   Delete user
   Only Admin can delete users
 */
@@ -283,5 +432,6 @@ module.exports = {
   getMe,
   logout,
   getUsers,
+  updateUser,
   deleteUser,
 };

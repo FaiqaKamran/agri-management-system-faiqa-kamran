@@ -7,6 +7,7 @@ const {
   getMe,
   logout,
   getUsers,
+  updateUser,
   deleteUser,
 } = require("../controllers/userController");
 
@@ -78,6 +79,18 @@ router.get(
   protect,
   authorize("admin"),
   getUsers
+);
+
+
+/*
+  Update user
+  Only Admin can update users
+*/
+router.put(
+  "/:id",
+  protect,
+  authorize("admin"),
+  updateUser
 );
 
 
